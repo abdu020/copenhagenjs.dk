@@ -2,11 +2,12 @@ const fm = require("front-matter");
 const marked = require("marked");
 const { readFileSync } = require("fs");
 const pMemoize = require("p-memoize");
-const data = require("../../../_posts/_data.json");
+const data = require("../_posts/_data.json");
+const { join } = require("path");
 
 const getEvents = () => {
   return data.posts.map(post => {
-    const markdown = readFileSync("../../_posts/" + post, "utf8");
+    const markdown = readFileSync(join(__dirname, "../_posts/" + post), "utf8");
     const parsed = fm(markdown);
     const date = parsed.attributes.date
       ? new Date(parsed.attributes.date + " GMT+0200")
@@ -24,6 +25,7 @@ const getEvents = () => {
       content: marked(parsed.body),
       date,
       type: parsed.attributes.type || "",
+      location: parsed.attributes.location || "",
       presentations: parsed.attributes.speakers || []
     };
   });

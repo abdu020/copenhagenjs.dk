@@ -2,7 +2,7 @@ const express = require("express");
 const { graphql } = require("graphql");
 const { ApolloServer, gql } = require("apollo-server-express");
 import { makeExecutableSchema } from "graphql-tools";
-const { videos } = require("../../data/videos.js");
+const { videos } = require("./data/videos.js");
 const { getEvents, memGetEvents } = require("./src/events.js");
 const { getSpeakers } = require("./src/speakers.js");
 
@@ -23,6 +23,7 @@ const typeDefs = gql`
     link: String
     date: String
     type: String
+    location: String
     presentations: [Presentation]
   }
   type Speaker {
@@ -33,7 +34,7 @@ const typeDefs = gql`
   }
   type Query {
     hello: String
-    events: [Event]
+    events(first: Int, last: Int): [Event]
     videos: [Videos]
     searchEvents(query: String): [Event]
     speakers: [Speaker]
@@ -45,8 +46,15 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     hello: () => "Hello world!",
-    events: () => {
-      return getEvents();
+    events: (parent, { first, last}) => {
+      const events = getEvents();
+      if(first) {
+        return events.slice(0, first)
+      }
+      if(last) {
+        return events.slice(events.length - last, events.length)
+      }
+      return events
     },
     videos: () => {
       return videos.map(v => ({
