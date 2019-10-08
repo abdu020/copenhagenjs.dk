@@ -1,10 +1,9 @@
-const express = require("express");
 const { graphql } = require("graphql");
-const { ApolloServer, gql } = require("apollo-server-express");
+const { gql } = require("apollo-server-express");
 import { makeExecutableSchema } from "graphql-tools";
-const { videos } = require("./data/videos.js");
-const { getEvents, memGetEvents } = require("./src/events.js");
-const { getSpeakers } = require("./src/speakers.js");
+const { videos } = require("../data/videos.js");
+const { getEvents, memGetEvents } = require("./events.js");
+const { getSpeakers } = require("./speakers.js");
 
 const typeDefs = gql`
   type Videos {
@@ -46,15 +45,15 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     hello: () => "Hello world!",
-    events: (parent, { first, last}) => {
+    events: (parent, { first, last }) => {
       const events = getEvents();
-      if(first) {
-        return events.slice(0, first)
+      if (first) {
+        return events.slice(0, first);
       }
-      if(last) {
-        return events.slice(events.length - last, events.length)
+      if (last) {
+        return events.slice(events.length - last, events.length);
       }
-      return events
+      return events;
     },
     videos: () => {
       return videos.map(v => ({
@@ -107,19 +106,9 @@ const resolvers = {
   }
 };
 
+export { typeDefs, resolvers };
+
 export const schema = makeExecutableSchema({
   typeDefs,
   resolvers
 });
-
-const server = new ApolloServer({ typeDefs, resolvers });
-
-const app = express();
-server.applyMiddleware({ app });
-
-const PORT = process.env.PORT || 9000;
-app.listen({ port: PORT }, () =>
-  console.log(
-    `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
-  )
-);

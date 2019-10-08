@@ -5,11 +5,10 @@ node_modules
 .next
 out
 pages/archive
-static/posts
-static/speakers.json
 .firebase
 bazel-bin
 bazel-copenhagenjs.dk
 bazel-genfiles
 bazel-out
 bazel-testlogs
+static/storybook

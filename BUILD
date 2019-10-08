@@ -2,6 +2,7 @@ genrule(
   name = "next",
   srcs = glob([
     "_speakers/**",
+    ".storybook/**",
     "components/**",
     "data/**",
     "Dockerfile",
@@ -10,21 +11,19 @@ genrule(
     "package-lock.json",
     "package.json",
     "pages/**",
-    "README.md",
     "static/**",
     "stories/**",
     "utils/**",
-    "WORKSPACE"
   ]) + ["//_posts:copy"],
-  cmd = "tar -czh . | docker build -t cphjs - && docker run --rm cphjs sh -c 'tar -C out -cvzf - .' > $(location build.tar.gz)",
+  cmd = "tar --exclude='./node_modules' -czh . | docker build -t cphjs - && docker run --rm cphjs sh -c 'tar -C out -cvzf - .' > $(location build.tar.gz)",
   outs = ["build.tar.gz"],
-  tags = ["local"]
+  tags = ["no-sandbox"]
 )
 
 genrule(
   name = "deploy",
   srcs = ["build.tar.gz", "firebase.json"],
-  cmd = "mkdir out && tar -xf $(location build.tar.gz) -C out && firebase deploy > $(location firebase_deploy.txt)",
+  cmd = "mkdir out && tar -xf $(location build.tar.gz) -C out && firebase deploy | tee $(location firebase_deploy.txt)",
   outs = ["firebase_deploy.txt"],
   tags = ["manual", "local"]
 )

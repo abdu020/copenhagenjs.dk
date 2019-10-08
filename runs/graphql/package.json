@@ -3,19 +3,23 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node -r esm server.js",
-    "fix-lint": "npx prettier --write '*.js' 'src/*.js'"
+    "test": "jest",
+    "start": "node -r esm src/server.js",
+    "fix-lint": "npx prettier --write 'src/*.js'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
     "apollo-server-express": "^2.8.1",
+    "babel-jest": "^24.9.0",
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "front-matter": "^3.0.2",
     "graphql": "^14.4.2",
+    "jest": "^24.9.0",
     "marked": "^0.7.0",
     "p-memoize": "^3.1.0"
   },

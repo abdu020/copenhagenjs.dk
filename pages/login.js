@@ -1,3 +1,5 @@
+import * as firebase from 'firebase/app'
+import 'firebase/auth'
 import React from 'react'
 import Head from 'next/head'
 import Page from '../components/Page'
@@ -9,40 +11,83 @@ export default class Videos extends React.Component {
     super()
     this.state = {
       email: '',
-      accountKitReady: false
+      status: ''
     }
+    this.initFirebase()
+    console.log(typeof window, typeof window !== 'undefined')
     if (typeof window !== 'undefined') {
-      window.initAccountkit = this.init.bind(this)
-      if (AccountKit && AccountKit.init) {
-        console.log('AccountKit already loaded')
-        this.initAccountkit()
-        this.state.accountKitReady = true
-      }
+      this.finishLogin()
     }
   }
-  init() {
-    this.initAccountkit()
-    this.setState({
-      accountKitReady: true
-    })
-  }
-  initAccountkit() {
-    console.log('Init', process.env.ACCOUNTKIT, window.initAccountkitDone)
-    if (!window.initAccountkitDone) {
-      AccountKit.init({
-        appId: process.env.ACCOUNTKIT,
-        version: 'v1.3',
-        state: 'test',
-        debug: true,
-        fbAppEventsEnabled: true
-      })
-      window.initAccountkitDone = true
+  initFirebase() {
+    const firebaseConfig = {
+      apiKey: 'AIzaSyBchWNVQsL7YEcTtf369PYTP-DLTiB7Vac',
+      projectId: 'copenhagenjsdk'
+    }
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig)
     }
   }
   handleLogin() {
-    AccountKit.login('EMAIL', { emailAddress: this.state.email }, res => {
-      console.log(res)
-    })
+    var actionCodeSettings = {
+      url: window.location.origin + window.location.pathname,
+      // url: 'https://copenhagenjs.dk/login',
+      handleCodeInApp: true
+    }
+
+    firebase
+      .auth()
+      .sendSignInLinkToEmail(this.state.email, actionCodeSettings)
+      .then(() => {
+        window.localStorage.setItem('emailForSignIn', this.state.email)
+        this.setState({
+          status: 'Check your email for login link!'
+        })
+      })
+      .catch(error => {
+        this.setState({
+          status: 'Something went wrong! Check the console.'
+        })
+        console.log(error)
+      })
+  }
+  finishLogin() {
+    if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+      var email = window.localStorage.getItem('emailForSignIn')
+      if (!email) {
+        email = window.prompt('Please provide your email for confirmation')
+      }
+      firebase
+        .auth()
+        .signInWithEmailLink(email, window.location.href)
+        .then(result => {
+          console.log(result)
+          this.setState({
+            status: 'Successful login!'
+          })
+          window.localStorage.removeItem('emailForSignIn')
+          this.sendToBackend()
+        })
+        .catch(error => {
+          this.setState({
+            status: 'Error logging in! See console.'
+          })
+          console.log('error', error)
+        })
+    }
+  }
+  getToken() {
+    return firebase.auth().currentUser.getIdToken(true)
+  }
+  async sendToBackend() {
+    const token = await this.getToken()
+    fetch('https://auth.copenhagenjs.dk/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ token })
+    }).catch(e => console.log(e))
   }
   render() {
     return (
@@ -57,28 +102,17 @@ export default class Videos extends React.Component {
             value={this.state.email}
             onChange={e => this.setState({ email: e.target.value })}
           />
-          {this.state.accountKitReady && (
-            <Button
-              type="button"
-              display="block"
-              size="lg"
-              margin="20px 0"
-              onClick={() => this.handleLogin()}
-            >
-              Login
-            </Button>
-          )}
+          <Button
+            type="button"
+            display="block"
+            size="lg"
+            margin="20px 0"
+            onClick={() => this.handleLogin()}
+          >
+            Login
+          </Button>
+          {this.state.status}
         </div>
-        <Head>
-          <script src="https://sdk.accountkit.com/en_US/sdk.js"></script>
-        </Head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-            AccountKit_OnInteractive = window.initAccountkit
-            `
-          }}
-        />
       </Page>
     )
   }
