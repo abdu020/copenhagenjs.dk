@@ -48,7 +48,7 @@ export const videos = [
   [
     '_WKukhiZhxs&t',
     'Being a self-taught javascript developer and what have I learned',
-    'Abdulahi Mohamed'
+    'Abdulahi Roble'
   ],
   [
     'VP8Sa7z7R5Y',
