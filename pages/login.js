@@ -5,6 +5,8 @@ import Head from 'next/head'
 import Page from '../components/Page'
 import TextInput from '../components/TextInput'
 import Button from '../components/Button'
+import { initFirebase } from '../services/firebase.js'
+import { setLoggedInStatus } from '../services/login.js'
 
 export default class Videos extends React.Component {
   constructor() {
@@ -13,19 +15,10 @@ export default class Videos extends React.Component {
       email: '',
       status: ''
     }
-    this.initFirebase()
+    initFirebase()
     console.log(typeof window, typeof window !== 'undefined')
     if (typeof window !== 'undefined') {
       this.finishLogin()
-    }
-  }
-  initFirebase() {
-    const firebaseConfig = {
-      apiKey: 'AIzaSyBchWNVQsL7YEcTtf369PYTP-DLTiB7Vac',
-      projectId: 'copenhagenjsdk'
-    }
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig)
     }
   }
   handleLogin() {
@@ -55,18 +48,22 @@ export default class Videos extends React.Component {
     if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
       var email = window.localStorage.getItem('emailForSignIn')
       if (!email) {
-        email = window.prompt('Please provide your email for confirmation')
+        return alert(
+          'Open this URL in browser to login - This browser is probrably a in-app browser.'
+        )
       }
       firebase
         .auth()
         .signInWithEmailLink(email, window.location.href)
-        .then(result => {
+        .then(async result => {
           console.log(result)
           this.setState({
             status: 'Successful login!'
           })
+          setLoggedInStatus()
           window.localStorage.removeItem('emailForSignIn')
-          this.sendToBackend()
+          await this.sendToBackend()
+          window.location.href = '/profile'
         })
         .catch(error => {
           this.setState({
@@ -81,7 +78,7 @@ export default class Videos extends React.Component {
   }
   async sendToBackend() {
     const token = await this.getToken()
-    fetch('https://auth.copenhagenjs.dk/token', {
+    return fetch('https://auth.copenhagenjs.dk/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -6,14 +6,18 @@ module.exports = {
       '/': { page: '/' },
       '/events': { page: '/events' },
       '/videos': { page: '/videos' },
+      '/video': { page: '/video' },
       '/about': { page: '/about' },
       '/speakers': { page: '/speakers' },
+      '/presentations': { page: '/presentations' },
       '/speaker': { page: '/speaker' },
       '/guidelines': { page: '/guidelines' },
       '/login': { page: '/login' },
       '/search': { page: '/search' },
       '/contact': { page: '/contact' },
-      '/learn': { page: '/learn' }
+      '/learn': { page: '/learn' },
+      '/profile': { page: '/profile' },
+      '/manage/': { page: '/manage/index' }
     }
     const archive = readdirSync('./pages/archive')
     for (let page in archive) {

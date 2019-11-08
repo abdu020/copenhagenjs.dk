@@ -2,12 +2,15 @@ const fm = require("front-matter");
 const marked = require("marked");
 const { readFileSync } = require("fs");
 const pMemoize = require("p-memoize");
-const data = require("../_posts/_data.json");
 const { join } = require("path");
 
 const getEvents = () => {
+  const data = require("../../_posts/_data.json");
   return data.posts.map(post => {
-    const markdown = readFileSync(join(__dirname, "../_posts/" + post), "utf8");
+    const markdown = readFileSync(
+      join(__dirname, "../../_posts/" + post),
+      "utf8"
+    );
     const parsed = fm(markdown);
     const date = parsed.attributes.date
       ? new Date(parsed.attributes.date + " GMT+0200")
@@ -20,7 +23,8 @@ const getEvents = () => {
 
     return {
       title: parsed.attributes.title || post.replace(".md", ""),
-      link: `https://copenhagenjs.dk/archive/${post.replace(".md", "")}/`,
+      selfLink: `https://copenhagenjs.dk/archive/${post.replace(".md", "")}/`,
+      link: parsed.attributes.link || "",
       markdown: parsed.body,
       content: marked(parsed.body),
       date,

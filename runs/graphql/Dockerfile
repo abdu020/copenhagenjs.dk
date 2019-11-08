@@ -12,4 +12,8 @@ ADD _posts /app/_posts
 
 ADD data /app/data
 
-CMD npm start
+COPY --from=gcr.io/berglas/berglas:latest /bin/berglas /bin/berglas
+
+RUN npx tsc
+
+ENTRYPOINT exec /bin/berglas exec -- npm start

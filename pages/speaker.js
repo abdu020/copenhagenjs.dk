@@ -1,15 +1,18 @@
+import React from 'react'
 import 'isomorphic-unfetch'
 import Head from 'next/head'
-import ApolloClient, { gql } from 'apollo-boost'
+import { gql } from 'apollo-boost'
+import { client } from '../services/graphql.js'
 import { ApolloProvider } from '@apollo/react-hooks'
 import { useQuery } from '@apollo/react-hooks'
 import Page from '../components/Page'
+import { Embed } from '../components/YoutubeEmbed'
+import {
+  SpeakerProfile,
+  SpeakerProfileVideos
+} from '../components/SpeakerProfile.js'
 
-const client = new ApolloClient({
-  uri: 'https://graphql.copenhagenjs.dk/graphql'
-})
-
-function getParams() {
+export function getParams() {
   return new URLSearchParams(
     typeof window == 'object' ? window.location.search : ''
   )
@@ -18,35 +21,55 @@ function getParams() {
 function Speakers() {
   const slug = getParams().get('name')
   const { loading, error, data } = useQuery(gql`
-    {
-      speaker(slug: "${slug}") {
+    query {
+      speakerProfile(slug: "${slug}") {
         name
-        title
-        event {
-          link
+        slug
+        videos {
+          ...SpeakerProfileVideos
+        }
+        user {
+          image
+          twitterId
+          githubId
+          website
+        }
+        ghostUser {
+          image
+          twitterId
+          githubId
+          website
+        }
+        presentations {
+          title
+          event {
+            date
+            selfLink
+          }
         }
       }
     }
+    ${SpeakerProfileVideos.fragment}
   `)
 
   if (loading) return <span>Loading...</span>
   if (error) return <span>Error :(</span>
-  if (data.speaker.length === 0) return <span>Could not find speaker</span>
+  const user = data.speakerProfile.ghostUser || data.speakerProfile.user
   return (
     <div>
       <Head>
-        <title>{data.speaker[0].name} spoke at CopenhagenJS</title>
+        <title>{data.speakerProfile.name} spoke at CopenhagenJS</title>
+        <link
+          rel="canonical"
+          href={`https://copenhagenjs.dk/speaker/?name=${data.speakerProfile.slug}`}
+        />
       </Head>
-      <h1>Speaker: {data.speaker[0].name}</h1>
-      <p>The person have {data.speaker.length} talks.</p>
-
-      {data.speaker.reverse().map(speaker => {
-        return (
-          <div key={speaker.title}>
-            <a href={speaker.event.link}>{speaker.title}</a>
-          </div>
-        )
-      })}
+      <SpeakerProfile
+        name={data.speakerProfile.name}
+        presentations={data.speakerProfile.presentations}
+        user={user}
+        videos={data.speakerProfile.videos}
+      />
     </div>
   )
 }

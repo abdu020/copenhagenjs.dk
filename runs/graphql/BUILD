@@ -3,6 +3,7 @@ genrule(
   srcs = glob([
     "Dockerfile",
     "babel.config.js",
+    "tsconfig.json",
     "package-lock.json",
     "package.json",
     "server.js",
@@ -25,4 +26,20 @@ sh_test(
   name = "test",
   srcs = ["test.sh"],
   data = [":docker"],
+)
+
+genrule(
+  name = "tag",
+  srcs = ["build.txt"],
+  cmd = "docker tag $$(cat $(location build.txt)) gcr.io/copenhagenjsdk/copenhagenjs.dk-graphql:$$SHA > $@",
+  outs = ["tag.txt"],
+  tags = ["manual"]
+)
+
+genrule(
+  name = "push",
+  srcs = ["tag.txt"],
+  cmd = "docker push gcr.io/copenhagenjsdk/copenhagenjs.dk-graphql:$$SHA > $@",
+  outs = ["push_sha.txt"],
+  tags = ["manual"]
 )

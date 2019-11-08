@@ -1,3 +1,4 @@
+import React from 'react'
 import Head from 'next/head'
 
 export default ({ children }) => {
@@ -24,7 +25,7 @@ export default ({ children }) => {
           rel="alternate"
           type="application/atom+xml"
           title="CopenhagenJS Feed - Subscribe to latest meetups"
-          href="https://copenhagenjsdk-5qfo37at3a-ew.a.run.app/"
+          href="https://feed.copenhagenjs.dk/atom.xml"
         />
       </Head>
       <div

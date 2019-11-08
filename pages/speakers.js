@@ -1,23 +1,22 @@
 import 'isomorphic-unfetch'
 import Head from 'next/head'
-import ApolloClient, { gql } from 'apollo-boost'
+import { gql } from 'apollo-boost'
+import { client } from '../services/graphql.js'
 import { ApolloProvider } from '@apollo/react-hooks'
 import { useQuery } from '@apollo/react-hooks'
 import Page from '../components/Page'
 
-const client = new ApolloClient({
-  uri: 'https://graphql.copenhagenjs.dk/graphql'
-})
-
 function Speakers() {
   const { loading, error, data } = useQuery(gql`
     {
-      speakers {
+      speakerProfiles {
         name
-        title
         slug
-        event {
-          link
+        user {
+          image
+        }
+        ghostUser {
+          image
         }
       }
     }
@@ -27,16 +26,33 @@ function Speakers() {
   if (error) return <span>Error :(</span>
   return (
     <div>
-      <p>There has been {data.speakers.length} talks.</p>
+      <p>There has been {data.speakerProfiles.length} speakers.</p>
 
-      {data.speakers.reverse().map(speaker => {
+      {data.speakerProfiles.reverse().map(speakerProfile => {
+        const selectUser = speakerProfile.user || speakerProfile.ghostUser
         return (
-          <div key={speaker.title}>
-            <strong>
-              <a href={'/speaker?name=' + speaker.slug}>{speaker.name}</a>
+          <div
+            key={speakerProfile.name}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              margin: '0 0 10px'
+            }}
+          >
+            <div style={{ width: 50 }}>
+              {selectUser && selectUser.image && (
+                <img
+                  width={50}
+                  style={{ borderRadius: 50, verticalAlign: 'middle' }}
+                  src={selectUser.image}
+                />
+              )}
+            </div>
+            <strong style={{ margin: '0 0 0 10px' }}>
+              <a href={'/speaker?name=' + speakerProfile.slug}>
+                {speakerProfile.name}
+              </a>
             </strong>
-            {' - '}
-            <a href={speaker.event.link}>{speaker.title}</a>
           </div>
         )
       })}
@@ -52,6 +68,13 @@ export default () => (
         <title>Speakers at CopenhagenJS</title>
       </Head>
       <h1>Speakers</h1>
+      <p>
+        See all{' '}
+        <strong>
+          <a href="/presentations">presentations</a>
+        </strong>{' '}
+        here!
+      </p>
       <Speakers />
     </Page>
   </ApolloProvider>
