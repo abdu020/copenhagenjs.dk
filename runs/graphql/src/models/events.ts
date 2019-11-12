@@ -4,7 +4,25 @@ const { readFileSync } = require("fs");
 const pMemoize = require("p-memoize");
 const { join } = require("path");
 
-const getEvents = () => {
+type Speaker = {
+  name: string;
+  title: string;
+};
+
+export type EventDetails = {
+  title?: string;
+  slug: string;
+  selfLink?: string;
+  link?: string;
+  markdown?: string;
+  content?: string;
+  date: Date;
+  type?: string;
+  location?: string;
+  presentations: Speaker[];
+};
+
+export const getEvents = (): EventDetails[] => {
   const data = require("../../_posts/_data.json");
   return data.posts.map(post => {
     const markdown = readFileSync(
@@ -23,6 +41,7 @@ const getEvents = () => {
 
     return {
       title: parsed.attributes.title || post.replace(".md", ""),
+      slug: post.replace(".md", ""),
       selfLink: `https://copenhagenjs.dk/archive/${post.replace(".md", "")}/`,
       link: parsed.attributes.link || "",
       markdown: parsed.body,
@@ -35,10 +54,6 @@ const getEvents = () => {
   });
 };
 
-exports.getEvents = getEvents;
-
-const memGetEvents = pMemoize(getEvents, {
+export const memGetEvents: () => EventDetails[] = pMemoize(getEvents, {
   maxAge: 1000 * 3600
 });
-
-exports.memGetEvents = memGetEvents;

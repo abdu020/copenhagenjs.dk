@@ -6,7 +6,7 @@ const { getSpeakers } = require("./models/speakers.js");
 const { me } = require("./resolvers/me.js");
 const { updateProfile } = require("./resolvers/updateprofile.js");
 const { video, videos, VideoSpeakerProfile } = require("./resolvers/videos.js");
-const { events, searchEvents } = require("./resolvers/events.js");
+const { events, event, searchEvents } = require("./resolvers/events.js");
 const {
   speakers,
   searchSpeakers,
@@ -22,6 +22,12 @@ const {
 } = require("./resolvers/speakerprofile.js");
 const { SpeakerEvent } = require("./resolvers/speaker.js");
 const { users } = require("./resolvers/users.js");
+import {
+  attendEvent,
+  EventAttendance,
+  EventAttendees,
+  AttendeeUser
+} from "./resolvers/attendEvent";
 
 const typeDefs = gql`
   type Video {
@@ -39,8 +45,13 @@ const typeDefs = gql`
     UPCOMING
     PAST
   }
+  type Attendee {
+    status: AttendanceStatus
+    user: User
+  }
   type Event {
     title: String
+    slug: String
     markdown: String
     content: String
     selfLink: String
@@ -49,6 +60,8 @@ const typeDefs = gql`
     type: String
     location: String
     presentations: [Presentation]
+    attendance: Attendance
+    attendees: [Attendee]
   }
   type SpeakerPresentation {
     title: String
@@ -86,9 +99,23 @@ const typeDefs = gql`
     instagramId: String
     website: String
   }
+  enum AttendanceStatus {
+    GOING
+    NOTGOING
+    WAITLIST
+  }
+  input AttendEventInput {
+    eventSlug: String
+    status: AttendanceStatus
+  }
+  type Attendance {
+    status: AttendanceStatus
+    event: Event
+  }
   type Query {
     hello: String
     events(first: Int, last: Int, status: EventStatus): [Event]
+    event(slug: String!): Event
     videos: [Video]
     video(slug: String!): Video
     searchEvents(query: String): [Event]
@@ -102,6 +129,7 @@ const typeDefs = gql`
   }
   type Mutation {
     updateProfile(input: ProfileInput): User
+    attendEvent(input: AttendEventInput!): Attendance
   }
 `;
 
@@ -109,6 +137,7 @@ const resolvers = {
   Query: {
     hello: () => "Hello world!",
     events,
+    event,
     videos,
     video,
     searchEvents,
@@ -119,6 +148,13 @@ const resolvers = {
     speakerProfiles,
     users,
     me
+  },
+  Event: {
+    attendance: EventAttendance,
+    attendees: EventAttendees
+  },
+  Attendee: {
+    user: AttendeeUser
   },
   Speaker: {
     event: SpeakerEvent
@@ -135,7 +171,8 @@ const resolvers = {
     speakerProfile: VideoSpeakerProfile
   },
   Mutation: {
-    updateProfile
+    updateProfile,
+    attendEvent
   }
 };
 
